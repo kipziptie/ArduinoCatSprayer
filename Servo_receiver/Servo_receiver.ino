@@ -1,14 +1,15 @@
 
 #include <Servo.h>
 #include <Wire.h>
-Servo servo;
+Servo servo1;
+Servo servo2;
 String message;
  
 
 void setup() {
   // put your setup code here, to run once:
-  servo.attach(3);
-  servo.attach(4);
+  servo1.attach(3);
+  servo2.attach(4);
   Wire.begin(4);
   Wire.onReceive(ServoEvent);
   Serial.begin(9600);
@@ -33,15 +34,20 @@ int arr[2];
     }
     Serial.println(message);
     unpackMessage(message, arr);
+    Serial.print("arr[0]:");
+    Serial.println(arr[0]);
+    
+    updateServo1(arr[0]);
+    updateServo2(arr[1]);
     message = "";
   }
 
 void updateServo1(int position){
-    servo.write(position);
+    servo1.write(position);
   }
 
 void updateServo2(int position){
-  
+    servo2.write(position);
   }
 
 void unpackMessage(String MSG, int arr[2]){
@@ -55,8 +61,5 @@ void unpackMessage(String MSG, int arr[2]){
   // the toInt() function at the end stores this cropped string as an integer
   arr[1] = MSG.substring(MSG.indexOf(",")+2, MSG.indexOf(")")).toInt();
 
-Serial.print("index0:");
-Serial.print(arr[0]+1);
-Serial.print(" index1:");
-Serial.println(arr[1]+1);
+
   }
