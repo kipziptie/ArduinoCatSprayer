@@ -9,7 +9,19 @@
 from time import sleep # for sleep function
 import RPi.GPIO as GPIO
 import subprocess
-pid = subprocess.run("vlc v4l2:///dev/video0 --v4l2-standard --live-caching 20 --zoom .5 &", shell=True)
+import smbus
+
+channel = 1
+address = 0x04
+reg_write_dac = 0x40
+bus = smbus.SMBus(channel)
+
+### Video Stream via VLC ###
+#
+# pid = subprocess.run("vlc v4l2:///dev/video0 --v4l2-standard --live-caching 20 --zoom .5 &", shell=True)
+#
+############################
+
 XPIN = 17
 YPIN = 18
 xStartPosition = 27
@@ -26,12 +38,16 @@ q = GPIO.PWM(YPIN, frequency) # PWM with 50Hz on servoPIN
 
 q.start(yStartPosition)
 
+
 def PAN_position(desired):
     position = convert_thumbstick_to_servo(int(desired))
     #p.start(1)
     #p.ChangeDutyCycle(int(slider_value))
     print("Pan: ", position)
-    q.ChangeDutyCycle(position)
+    #q.ChangeDutyCycle(position)
+    bus.write_byte(address, position)
+    print(position)
+    
 
 def TILT_position(desired):
     position = convert_thumbstick_to_servo(int(desired))
@@ -40,12 +56,15 @@ def TILT_position(desired):
     print("Tilt: ", position)
     p.ChangeDutyCycle(position)
 
+def set_PAN_TILT_Position(XYtuple):
+    bus.write_byte(address, XYtuple)
+
 def convert_thumbstick_to_servo(pValue):
     
     OldMax = 1025
     OldMin = 0
-    NewMax = 50
-    NewMin = 4.4
+    NewMax = 180
+    NewMin = 1
     
     OldRange = (OldMax - OldMin)  
     NewRange = (NewMax - NewMin)  
