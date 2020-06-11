@@ -12,7 +12,8 @@ import subprocess
 import smbus
 
 channel = 1
-address = 0x04
+addresspan = 0x05
+addresstilt = 0x04
 reg_write_dac = 0x40
 bus = smbus.SMBus(channel)
 
@@ -38,17 +39,17 @@ q = GPIO.PWM(YPIN, frequency) # PWM with 50Hz on servoPIN
 
 q.start(yStartPosition)
 
-
+## Retire this function
 def PAN_position(desired):
     position = convert_thumbstick_to_servo(int(desired))
     #p.start(1)
     #p.ChangeDutyCycle(int(slider_value))
     print("Pan: ", position)
-    #q.ChangeDutyCycle(position)
-    bus.write_byte(address, position)
+    q.ChangeDutyCycle(position)
+    #bus.write_byte(address, position)
     print(position)
     
-
+## Retire this function
 def TILT_position(desired):
     position = convert_thumbstick_to_servo(int(desired))
     #p.start(1)
@@ -115,7 +116,7 @@ def printControllerInput(XY):
 def getControllerStatusTuple():
     XY = getControllerInput()
     #printControllerInput(XY)
-    myTuple = XY.split(",")
+    myTuple = list(map(int,XY.split(",")))
     return myTuple
 
 def printTuple(inp):
@@ -133,6 +134,21 @@ def byteToString(inp):
     out = inp.decode("utf-8")
     return out
 
+def updatePosition(XY):
+    #sendstring=''.join(XY)
+    print("TYPE: ", type(XY[0]))
+    positiontilt = convert_thumbstick_to_servo(XY[0])
+    positionpan = convert_thumbstick_to_servo(XY[1])
+    #print("list(TYPE): ", type(list(XY[0])))
+    
+    #bus.write_i2c_block_data(address, 0xf0, XY)
+    bus.write_byte(addresstilt, positiontilt)
+    bus.write_byte(addresspan, positionpan)
+    #for i in XY:
+    #    bus.write_byte(address, int(i, base=16))
+        
+    #    sleep(.1)
+    #    print(i)
 #import matplotlib.pyplot
 #matplotlib.pyplot.show()
 #matplotlib.pyplot.ion()
@@ -145,12 +161,16 @@ while True:
     myTuple = getControllerStatusTuple()
     
     if (abs(int(myTuple[0]) - int(oldTuple[0])) > 2):
-        print("OLD:", oldTuple[0], "`nNEW:", myTuple[0])
-        PAN_position(myTuple[0])
+        print("OLD:", oldTuple[0], "NEW:", myTuple[0])
+        ## Retire this function - PAN_position(myTuple[0])
+        updatePosition(myTuple)
         
     if (abs(int(myTuple[1]) - int(oldTuple[1])) > 2 ):
-        print("OLD:", oldTuple[1], "`nNEW:", myTuple[1])
-        TILT_position(myTuple[1])
+        print("SENT:", "OLD:", oldTuple[1], "`nNEW:", myTuple[1])
+        ## Retire this function - TILT_position(myTuple[1])
+        updatePosition(myTuple)
+        
+        
     #printControllerInput(getControllerInput())
     #printXY(getControllerStatusTuple())
     
